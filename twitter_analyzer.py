@@ -1,5 +1,4 @@
 from twitter import Twitter, OAuth
-from collections import namedtuple
 from keys import *
 from watson_data import ContentItem
 from typing import List, Dict, Tuple
@@ -13,6 +12,12 @@ matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 
 
+def analyze_user(screen_name: str):
+    json_dictionary = create_watson_json_from_twitter(screen_name)
+    profile = get_personality_insights_from_tweets(json_dictionary)
+    display_results(screen_name, profile)
+
+
 def create_watson_json_from_twitter(screen_name: str) -> Dict:
     tweet_objects = get_tweets_string(screen_name)
     items = tweets_to_content_items(tweet_objects)
@@ -20,11 +25,19 @@ def create_watson_json_from_twitter(screen_name: str) -> Dict:
     return watson_dictionary
 
 
-def get_tweets_string(screen_name: str) -> namedtuple:
+def get_tweets_string(screen_name: str) -> List[Dict]:
     oauth = OAuth(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
     twitter = Twitter(auth=oauth)
-    tweets = twitter.statuses.user_timeline(screen_name=screen_name, count=3200)
+    tweets = twitter.statuses.user_timeline(screen_name=screen_name, count=200)
+    get_all_tweets(twitter, tweets, screen_name)
     return tweets
+
+
+def get_all_tweets(twitter: Twitter, tweets: List, screen_name: str):
+    for i in range(15):
+        last_id = tweets[-1]["id"]
+        new_tweets = twitter.statuses.user_timeline(screen_name, count=200)
+        tweets.extend(new_tweets)
 
 
 def tweets_to_content_items(tweets: List[Dict]) -> List[ContentItem]:
@@ -36,19 +49,12 @@ def tweets_to_content_items(tweets: List[Dict]) -> List[ContentItem]:
         content_items.append(content_item)
     return content_items
 
-
 def get_personality_insights_from_tweets(tweets_dictionary: Dict) -> Dict:
     personality_insights = PersonalityInsightsV3(version="2017-10-16",
                                                  url="https://gateway-wdc.watsonplatform.net/personality-insights/api",
                                                  iam_api_key=WATSON_KEY)
     return personality_insights.profile(tweets_dictionary, raw_scores=True, consumption_preferences=True,
                                         accept_language="en")
-
-
-def analyze_user(screen_name: str):
-    json_dictionary = create_watson_json_from_twitter(screen_name)
-    profile = get_personality_insights_from_tweets(json_dictionary)
-    display_results(screen_name, profile)
 
 
 def display_results(screen_name: str, profile: Dict):
