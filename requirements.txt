@@ -1,4 +1,4 @@
-twitter
+tweepy
 watson-developer-cloud
 matplotlib
 numpy
