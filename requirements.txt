@@ -1,2 +1,4 @@
 twitter
 watson-developer-cloud
+matplotlib
+numpy
