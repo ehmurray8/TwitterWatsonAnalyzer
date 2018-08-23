@@ -44,6 +44,7 @@ def get_personality_insights_from_tweets(tweets_dictionary: Dict) -> Dict:
     return personality_insights.profile(tweets_dictionary, raw_scores=True, consumption_preferences=True,
                                         accept_language="en")
 
+
 def analyze_user(screen_name: str):
     json_dictionary = create_watson_json_from_twitter(screen_name)
     profile = get_personality_insights_from_tweets(json_dictionary)
@@ -55,8 +56,8 @@ def display_results(screen_name: str, profile: Dict):
     create_plot("personality", profile, 311)
     create_plot("values", profile, 312)
     create_plot("needs", profile, 313)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.state('zoomed')
+    figure_manager = plt.get_current_fig_manager()
+    figure_manager.window.state('zoomed')
     plt.show()
 
 
