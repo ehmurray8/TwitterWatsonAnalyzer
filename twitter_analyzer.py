@@ -6,6 +6,7 @@ from typing import List, Dict
 from datetime import datetime
 import time
 from watson_developer_cloud.personality_insights_v3 import PersonalityInsightsV3
+import argparse
 
 
 def create_watson_json_from_twitter(screen_name: str) -> Dict:
@@ -41,6 +42,9 @@ def get_personality_insights_from_tweets(tweets_dictionary: Dict) -> Dict:
 
 
 if __name__ == "__main__":
-    SCREEN_NAME = "realDonaldTrump"
-    JSON_DICTIONARY = create_watson_json_from_twitter(SCREEN_NAME)
+    PARSER = argparse.ArgumentParser(description="Screen name of twitter user.")
+    PARSER.add_argument('screen_name', metavar="ScreenName", type=str,
+                        help="Screen name of the twitter user to analyze.")
+    ARGS = PARSER.parse_args()
+    JSON_DICTIONARY = create_watson_json_from_twitter(ARGS.screen_name)
     PROFILE = get_personality_insights_from_tweets(JSON_DICTIONARY)
