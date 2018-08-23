@@ -1,13 +1,12 @@
-from twitter import Twitter, OAuth
 from keys import *
 from watson_data import ContentItem
 from typing import List, Dict, Tuple
-from datetime import datetime
 import time
 from watson_developer_cloud.personality_insights_v3 import PersonalityInsightsV3
 import argparse
 import numpy as np
 import matplotlib
+import tweepy
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 
@@ -26,26 +25,27 @@ def create_watson_json_from_twitter(screen_name: str) -> Dict:
 
 
 def get_tweets_string(screen_name: str) -> List[Dict]:
-    oauth = OAuth(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
-    twitter = Twitter(auth=oauth)
-    tweets = twitter.statuses.user_timeline(screen_name=screen_name, count=200)
+    oauth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
+    oauth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET)
+    twitter = tweepy.API(oauth)
+    tweets = twitter.user_timeline(screen_name=screen_name, count=200)
     get_all_tweets(twitter, tweets, screen_name)
     return tweets
 
 
-def get_all_tweets(twitter: Twitter, tweets: List, screen_name: str):
+def get_all_tweets(twitter: tweepy.API, tweets: List, screen_name: str):
     for i in range(15):
-        last_id = tweets[-1]["id"]
-        new_tweets = twitter.statuses.user_timeline(screen_name, count=200)
+        last_id = tweets[-1].id
+        new_tweets = twitter.user_timeline(screen_name, count=200, last_id=last_id)
         tweets.extend(new_tweets)
 
 
-def tweets_to_content_items(tweets: List[Dict]) -> List[ContentItem]:
+def tweets_to_content_items(tweets: List) -> List[ContentItem]:
     content_items = []
     for tweet in tweets:
-        date_time = datetime.strptime(tweet["created_at"], "%a %b %d %H:%M:%S +0000 %Y")
+        date_time = tweet.created_at
         timestamp = int(time.mktime(date_time.timetuple()) * 1000)
-        content_item = ContentItem(content=tweet["text"], created=timestamp, id_str=tweet["id_str"])
+        content_item = ContentItem(content=tweet.text, created=timestamp, id_str=str(tweet.id))
         content_items.append(content_item)
     return content_items
 
